@@ -1,0 +1,2646 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Spamorix – Full Stack Anti-Phishing App</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <style>
+        /* ============================================================
+   SPAMORIX — FULL STACK  |  Frontend + Backend + MongoDB
+   Single HTML file — connects to Node.js/Express backend
+   Backend: http://localhost:5000
+   ============================================================ */
+        :root {
+            --g-dark: #0a6640;
+            --g-mid: #12a05c;
+            --g-light: #1fd07a;
+            --g-pale: #d4f5e4;
+            --white: #fff;
+            --off: #f4faf7;
+            --gl: #e8f5ef;
+            --gm: #b0c9bc;
+            --gt: #4a6b5a;
+            --danger: #e53e3e;
+            --danger-l: #fff5f5;
+            --amber: #d97706;
+            --shadow: 0 4px 24px rgba(10, 102, 64, .13);
+            --shadow-sm: 0 2px 8px rgba(10, 102, 64, .09);
+            --r: 18px;
+            --r-sm: 10px;
+            --font: 'Nunito', sans-serif;
+            --mono: 'Space Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--off);
+            color: #1a3328;
+            min-height: 100vh;
+            max-width: 420px;
+            margin: 0 auto;
+            overflow-x: hidden
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            flex-direction: column
+        }
+
+        .screen.active {
+            display: flex
+        }
+
+        /* ── LOGIN ── */
+        #loginScreen {
+            background: linear-gradient(160deg, var(--g-dark), var(--g-mid) 60%, var(--g-light));
+            align-items: center;
+            justify-content: center;
+            padding: 32px 24px;
+            position: relative;
+            overflow: hidden
+        }
+
+        #loginScreen::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .05);
+            top: -80px;
+            right: -80px
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 28px;
+            padding: 36px 28px 32px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+            position: relative;
+            z-index: 1
+        }
+
+        .brand-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--g-dark), var(--g-mid));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+            box-shadow: 0 8px 24px rgba(10, 102, 64, .35)
+        }
+
+        .brand-name {
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--g-dark);
+            letter-spacing: -1px;
+            text-align: center
+        }
+
+        .brand-tag {
+            font-size: 13px;
+            color: var(--gt);
+            margin: 4px 0 28px;
+            font-weight: 600;
+            text-align: center
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--g-dark);
+            margin-bottom: 7px
+        }
+
+        .input-wrap {
+            position: relative;
+            margin-bottom: 18px
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--g-mid);
+            pointer-events: none
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px 14px 42px;
+            border: 2px solid var(--gl);
+            border-radius: var(--r-sm);
+            font-size: 15px;
+            font-family: var(--font);
+            background: var(--off);
+            color: #1a3328;
+            outline: none;
+            transition: border .2s, box-shadow .2s
+        }
+
+        .form-input:focus {
+            border-color: var(--g-mid);
+            box-shadow: 0 0 0 3px rgba(18, 160, 92, .15);
+            background: #fff
+        }
+
+        .form-input::placeholder {
+            color: var(--gm)
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--g-dark), var(--g-mid));
+            color: #fff;
+            border: none;
+            border-radius: var(--r-sm);
+            font-size: 16px;
+            font-weight: 800;
+            font-family: var(--font);
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(10, 102, 64, .35);
+            transition: transform .15s;
+            margin-top: 6px
+        }
+
+        .btn-primary:active {
+            transform: scale(.98)
+        }
+
+        .btn-primary:disabled {
+            opacity: .6;
+            cursor: not-allowed
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 20px;
+            flex-wrap: wrap
+        }
+
+        .trust-badge {
+            font-size: 11px;
+            color: var(--gt);
+            font-weight: 600
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--gt)
+        }
+
+        .login-footer span {
+            color: var(--g-mid);
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        /* ── TOP NAV ── */
+        .top-nav {
+            background: #fff;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .nav-brand {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--g-dark)
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        .nav-icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--gl);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--g-dark);
+            position: relative
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+            display: none
+        }
+
+        .notif-dot.show {
+            display: block
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--g-dark), var(--g-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #fff;
+            cursor: pointer
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px
+        }
+
+        /* ── BOTTOM NAV ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            padding: 10px 8px 14px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -4px 20px rgba(10, 102, 64, .1);
+            border-top: 1px solid var(--gl);
+            z-index: 200
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            cursor: pointer;
+            color: var(--gm);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 0;
+            border: none;
+            background: none;
+            font-family: var(--font);
+            transition: color .15s
+        }
+
+        .nav-item svg {
+            width: 22px;
+            height: 22px
+        }
+
+        .nav-item.active {
+            color: var(--g-dark)
+        }
+
+        /* ── CARDS / SHARED ── */
+        .section-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #1a3328;
+            margin: 20px 16px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .section-link {
+            font-size: 12px;
+            color: var(--g-mid);
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-family: var(--font)
+        }
+
+        .card {
+            background: #fff;
+            border-radius: var(--r);
+            padding: 18px;
+            box-shadow: var(--shadow-sm);
+            margin: 0 16px
+        }
+
+        /* ── PROTECTION BANNER ── */
+        .protection-banner {
+            margin: 16px 16px 0;
+            background: linear-gradient(135deg, var(--g-dark), var(--g-mid));
+            border-radius: var(--r);
+            padding: 22px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 8px 28px rgba(10, 102, 64, .3);
+            position: relative;
+            overflow: hidden
+        }
+
+        .protection-banner::after {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .06);
+            right: -20px;
+            top: -20px
+        }
+
+        .shield-wrap {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, .15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        .banner-status {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--g-pale);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px
+        }
+
+        .banner-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 4px
+        }
+
+        .banner-sub {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .75)
+        }
+
+        .shield-pulse {
+            animation: pulse 2s infinite
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.08)
+            }
+        }
+
+        /* ── TRUST SCORE ── */
+        .trust-score-card {
+            margin: 14px 16px 0;
+            background: #fff;
+            border-radius: var(--r);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 16px
+        }
+
+        .score-ring {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0
+        }
+
+        .score-ring svg {
+            width: 80px;
+            height: 80px;
+            transform: rotate(-90deg)
+        }
+
+        .score-ring-bg {
+            fill: none;
+            stroke: var(--gl);
+            stroke-width: 7
+        }
+
+        .score-ring-fg {
+            fill: none;
+            stroke: var(--g-mid);
+            stroke-width: 7;
+            stroke-linecap: round;
+            stroke-dasharray: 201;
+            stroke-dashoffset: 30;
+            transition: stroke-dashoffset 1s ease
+        }
+
+        .score-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center
+        }
+
+        .score-num {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--g-dark);
+            font-family: var(--mono)
+        }
+
+        .score-pct {
+            font-size: 10px;
+            color: var(--gt);
+            font-weight: 700
+        }
+
+        .score-info {
+            flex: 1
+        }
+
+        .score-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #1a3328;
+            margin-bottom: 4px
+        }
+
+        .score-desc {
+            font-size: 12px;
+            color: var(--gt);
+            margin-bottom: 10px
+        }
+
+        .score-bars {
+            display: flex;
+            gap: 4px
+        }
+
+        .score-bar {
+            height: 6px;
+            flex: 1;
+            border-radius: 3px;
+            background: var(--g-light)
+        }
+
+        .score-bar.dim {
+            background: var(--gl)
+        }
+
+        /* ── QUICK STATS ── */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 0 16px
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: var(--r-sm);
+            padding: 16px 14px;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .stat-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px
+        }
+
+        .stat-icon.green {
+            background: var(--g-pale);
+            color: var(--g-dark)
+        }
+
+        .stat-icon.red {
+            background: #fff5f5;
+            color: var(--danger)
+        }
+
+        .stat-icon.amber {
+            background: #fffbeb;
+            color: var(--amber)
+        }
+
+        .stat-icon.blue {
+            background: #ebf8ff;
+            color: #2b6cb0
+        }
+
+        .stat-num {
+            font-size: 26px;
+            font-weight: 900;
+            color: #1a3328;
+            font-family: var(--mono);
+            line-height: 1
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--gt);
+            font-weight: 700;
+            margin-top: 4px
+        }
+
+        .stat-change {
+            font-size: 10px;
+            font-weight: 700;
+            margin-top: 6px
+        }
+
+        .stat-change.up {
+            color: var(--g-mid)
+        }
+
+        .stat-change.warn {
+            color: var(--danger)
+        }
+
+        /* ── ENGINE CARD ── */
+        .engine-card {
+            margin: 0 16px;
+            background: linear-gradient(135deg, #f0fdf7, #e6f9ef);
+            border: 1.5px solid var(--g-pale);
+            border-radius: var(--r);
+            padding: 16px 18px
+        }
+
+        .engine-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px
+        }
+
+        .engine-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--g-dark)
+        }
+
+        .engine-live {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--g-mid)
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--g-light);
+            border-radius: 50%;
+            animation: blink 1.3s infinite
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .2
+            }
+        }
+
+        .engine-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px
+        }
+
+        .engine-row:last-child {
+            margin-bottom: 0
+        }
+
+        .engine-label {
+            font-size: 12px;
+            color: var(--gt);
+            font-weight: 600;
+            flex: 1
+        }
+
+        .engine-ok {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--g-mid);
+            background: var(--g-pale);
+            padding: 2px 9px;
+            border-radius: 8px
+        }
+
+        /* ── CHANNELS ── */
+        .channels-wrap {
+            margin: 0 16px
+        }
+
+        .channel-row {
+            background: #fff;
+            border-radius: var(--r-sm);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer
+        }
+
+        .channel-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px
+        }
+
+        .channel-info {
+            flex: 1
+        }
+
+        .channel-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1a3328
+        }
+
+        .channel-detail {
+            font-size: 11px;
+            color: var(--gt);
+            margin-top: 2px
+        }
+
+        .channel-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 20px
+        }
+
+        .badge-active {
+            background: var(--g-pale);
+            color: var(--g-dark)
+        }
+
+        .badge-warn {
+            background: #fff3cd;
+            color: #856404
+        }
+
+        .badge-danger {
+            background: #fff5f5;
+            color: var(--danger)
+        }
+
+        /* ── ACTIVITY ── */
+        .activity-feed {
+            margin: 0 16px
+        }
+
+        .activity-item {
+            background: #fff;
+            border-radius: var(--r-sm);
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            transition: transform .1s
+        }
+
+        .activity-item:active {
+            transform: scale(.98)
+        }
+
+        .activity-item.safe {
+            border-left-color: var(--g-mid)
+        }
+
+        .activity-item.warn {
+            border-left-color: var(--amber)
+        }
+
+        .activity-item.danger {
+            border-left-color: var(--danger)
+        }
+
+        .activity-dot {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px
+        }
+
+        .dot-safe {
+            background: var(--g-pale)
+        }
+
+        .dot-warn {
+            background: #fffbeb
+        }
+
+        .dot-danger {
+            background: #fff5f5
+        }
+
+        .activity-body {
+            flex: 1
+        }
+
+        .activity-sender {
+            font-size: 13px;
+            font-weight: 800;
+            color: #1a3328
+        }
+
+        .activity-msg {
+            font-size: 12px;
+            color: var(--gt);
+            margin-top: 2px;
+            line-height: 1.5
+        }
+
+        .activity-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 6px
+        }
+
+        .activity-time {
+            font-size: 10px;
+            color: var(--gm);
+            font-family: var(--mono)
+        }
+
+        .activity-tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px
+        }
+
+        .tag-safe {
+            background: var(--g-pale);
+            color: var(--g-dark)
+        }
+
+        .tag-warn {
+            background: #fff3cd;
+            color: #856404
+        }
+
+        .tag-danger {
+            background: #fff5f5;
+            color: var(--danger)
+        }
+
+        /* ── INSIGHTS ── */
+        .insights-card {
+            margin: 0 16px;
+            background: #fff;
+            border-radius: var(--r);
+            padding: 18px;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .insight-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px
+        }
+
+        .insight-row:last-child {
+            margin-bottom: 0
+        }
+
+        .insight-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gt);
+            flex: 1
+        }
+
+        .insight-bar-wrap {
+            width: 100px;
+            height: 8px;
+            background: var(--gl);
+            border-radius: 4px;
+            overflow: hidden
+        }
+
+        .insight-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease
+        }
+
+        .bar-green {
+            background: var(--g-mid)
+        }
+
+        .bar-red {
+            background: var(--danger)
+        }
+
+        .bar-amber {
+            background: var(--amber)
+        }
+
+        .bar-blue {
+            background: #3182ce
+        }
+
+        .insight-pct {
+            font-size: 12px;
+            font-weight: 800;
+            color: #1a3328;
+            font-family: var(--mono);
+            width: 34px;
+            text-align: right
+        }
+
+        /* ── MESSAGES ── */
+        .messages-list {
+            padding: 0 16px
+        }
+
+        .msg-convo {
+            background: #fff;
+            border-radius: var(--r-sm);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: transform .1s
+        }
+
+        .msg-convo:active {
+            transform: scale(.97)
+        }
+
+        .convo-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--g-dark), var(--g-mid))
+        }
+
+        .convo-avatar.danger-avatar {
+            background: linear-gradient(135deg, #c53030, #e53e3e)
+        }
+
+        .convo-avatar.amber-avatar {
+            background: linear-gradient(135deg, #b7791f, var(--amber))
+        }
+
+        .convo-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .convo-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1a3328
+        }
+
+        .convo-preview {
+            font-size: 12px;
+            color: var(--gt);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px
+        }
+
+        .convo-right {
+            text-align: right;
+            flex-shrink: 0
+        }
+
+        .convo-time {
+            font-size: 10px;
+            color: var(--gm);
+            font-family: var(--mono)
+        }
+
+        .convo-count {
+            width: 20px;
+            height: 20px;
+            background: var(--danger);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: #fff;
+            margin: 4px 0 0 auto
+        }
+
+        /* ── CHAT ── */
+        #chatScreen {
+            background: var(--off)
+        }
+
+        .chat-header {
+            background: #fff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gl);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--g-dark);
+            flex-shrink: 0
+        }
+
+        .chat-contact {
+            flex: 1
+        }
+
+        .chat-contact-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: #1a3328
+        }
+
+        .chat-contact-status {
+            font-size: 11px;
+            color: var(--gt)
+        }
+
+        .chat-risk-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 16px 100px
+        }
+
+        .msg-bubble-wrap {
+            display: flex;
+            margin-bottom: 14px
+        }
+
+        .msg-bubble-wrap.them {
+            justify-content: flex-start
+        }
+
+        .msg-bubble-wrap.me {
+            justify-content: flex-end
+        }
+
+        .msg-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.55
+        }
+
+        .msg-bubble-wrap.them .msg-bubble {
+            background: #fff;
+            color: #1a3328;
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .msg-bubble-wrap.me .msg-bubble {
+            background: linear-gradient(135deg, var(--g-dark), var(--g-mid));
+            color: #fff;
+            border-bottom-right-radius: 4px
+        }
+
+        .msg-time {
+            font-size: 10px;
+            opacity: .6;
+            margin-top: 4px;
+            font-family: var(--mono)
+        }
+
+        .msg-bubble-wrap.me .msg-time {
+            text-align: right
+        }
+
+        .ai-warning {
+            background: #fff5f5;
+            border: 1.5px solid #fc8181;
+            border-radius: var(--r-sm);
+            padding: 10px 14px;
+            margin: 6px 0;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            font-size: 12px;
+            color: #c53030;
+            font-weight: 600;
+            max-width: 90%
+        }
+
+        .chat-input-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            padding: 10px 16px 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, .08);
+            border-top: 1px solid var(--gl);
+            z-index: 150
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 24px;
+            border: 2px solid var(--gl);
+            font-family: var(--font);
+            font-size: 14px;
+            outline: none;
+            background: var(--off)
+        }
+
+        .chat-input:focus {
+            border-color: var(--g-mid)
+        }
+
+        .send-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--g-dark), var(--g-mid));
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(10, 102, 64, .3)
+        }
+
+        /* ── SCAN ── */
+        .scan-wrap {
+            padding: 20px 16px
+        }
+
+        .scan-input-card {
+            background: #fff;
+            border-radius: var(--r);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px
+        }
+
+        .scan-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px 14px;
+            border: 2px solid var(--gl);
+            border-radius: var(--r-sm);
+            font-family: var(--font);
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            color: #1a3328;
+            background: var(--off)
+        }
+
+        .scan-textarea:focus {
+            border-color: var(--g-mid)
+        }
+
+        .scan-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--g-dark), var(--g-mid));
+            color: #fff;
+            border: none;
+            border-radius: var(--r-sm);
+            font-size: 15px;
+            font-weight: 800;
+            font-family: var(--font);
+            cursor: pointer;
+            margin-top: 12px
+        }
+
+        .scan-result {
+            background: #fff;
+            border-radius: var(--r);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            display: none
+        }
+
+        .scan-result.visible {
+            display: block
+        }
+
+        .result-score-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px
+        }
+
+        .result-gauge {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 900;
+            font-family: var(--mono);
+            flex-shrink: 0
+        }
+
+        .gauge-safe {
+            background: var(--g-pale);
+            color: var(--g-dark)
+        }
+
+        .gauge-danger {
+            background: #fff5f5;
+            color: var(--danger)
+        }
+
+        .gauge-warn {
+            background: #fffbeb;
+            color: var(--amber)
+        }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #1a3328;
+            margin-bottom: 4px
+        }
+
+        .result-desc {
+            font-size: 12px;
+            color: var(--gt)
+        }
+
+        .result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px
+        }
+
+        .result-tag {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 10px;
+            background: var(--g-pale);
+            color: var(--g-dark)
+        }
+
+        .result-tag.red {
+            background: #fff5f5;
+            color: var(--danger)
+        }
+
+        .result-tag.amber {
+            background: #fffbeb;
+            color: var(--amber)
+        }
+
+        /* ── SETTINGS ── */
+        .settings-wrap {
+            padding: 16px 16px 90px
+        }
+
+        .settings-section {
+            margin-bottom: 20px
+        }
+
+        .settings-section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--gt);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            padding-left: 4px
+        }
+
+        .settings-row {
+            background: #fff;
+            border-radius: var(--r-sm);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer
+        }
+
+        .settings-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px
+        }
+
+        .settings-label {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a3328
+        }
+
+        .settings-sub {
+            font-size: 11px;
+            color: var(--gt);
+            margin-top: 2px
+        }
+
+        .toggle {
+            width: 46px;
+            height: 26px;
+            border-radius: 13px;
+            background: var(--gl);
+            position: relative;
+            cursor: pointer;
+            transition: background .25s;
+            flex-shrink: 0;
+            border: none
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            top: 3px;
+            left: 3px;
+            transition: left .25s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .2)
+        }
+
+        .toggle.on {
+            background: var(--g-mid)
+        }
+
+        .toggle.on::after {
+            left: 23px
+        }
+
+        .settings-arrow {
+            color: var(--gm)
+        }
+
+        /* ── INTERVENTION OVERLAY ── */
+        .overlay-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .75);
+            z-index: 500;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            backdrop-filter: blur(3px)
+        }
+
+        .overlay-backdrop.show {
+            display: flex;
+            animation: fadeIn .2s ease
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .intervention-modal {
+            background: #fff;
+            border-radius: 28px 28px 0 0;
+            padding: 28px 24px 36px;
+            width: 100%;
+            max-width: 420px;
+            animation: slideUp .3s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%)
+            }
+
+            to {
+                transform: translateY(0)
+            }
+        }
+
+        .modal-pill {
+            width: 40px;
+            height: 4px;
+            background: var(--gl);
+            border-radius: 2px;
+            margin: 0 auto 20px
+        }
+
+        .modal-alert-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #fff5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            animation: shakePulse .6s ease;
+            border: 3px solid #fed7d7
+        }
+
+        @keyframes shakePulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            20% {
+                transform: scale(1.15) rotate(-5deg)
+            }
+
+            40% {
+                transform: scale(1.1) rotate(5deg)
+            }
+
+            60% {
+                transform: scale(1.08) rotate(-3deg)
+            }
+        }
+
+        .modal-alert-icon svg {
+            width: 38px;
+            height: 38px;
+            color: var(--danger)
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--danger);
+            text-align: center;
+            line-height: 1.2;
+            margin-bottom: 10px
+        }
+
+        .modal-desc {
+            font-size: 14px;
+            color: var(--gt);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 20px
+        }
+
+        .modal-details {
+            background: #fff5f5;
+            border-radius: var(--r-sm);
+            padding: 14px 16px;
+            margin-bottom: 20px
+        }
+
+        .modal-detail-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            margin-bottom: 8px
+        }
+
+        .modal-detail-row:last-child {
+            margin-bottom: 0
+        }
+
+        .modal-detail-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 1px
+        }
+
+        .modal-detail-text {
+            font-size: 12px;
+            color: #c53030;
+            font-weight: 600;
+            line-height: 1.5
+        }
+
+        .btn-danger {
+            width: 100%;
+            padding: 16px;
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            border-radius: var(--r-sm);
+            font-size: 16px;
+            font-weight: 800;
+            font-family: var(--font);
+            cursor: pointer;
+            margin-bottom: 10px;
+            box-shadow: 0 6px 20px rgba(229, 62, 62, .35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: var(--gl);
+            color: var(--gt);
+            border: none;
+            border-radius: var(--r-sm);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: var(--font);
+            cursor: pointer
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--g-dark);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 1000;
+            display: none;
+            white-space: nowrap;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25)
+        }
+
+        .toast.show {
+            display: block;
+            animation: toastIn .3s ease
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0)
+            }
+        }
+
+        /* ── AI THINKING ── */
+        .ai-thinking {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 8px 12px;
+            background: #fff;
+            border-radius: 12px;
+            width: fit-content;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .ai-thinking span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--g-mid);
+            animation: bounce 1.2s infinite
+        }
+
+        .ai-thinking span:nth-child(2) {
+            animation-delay: .2s
+        }
+
+        .ai-thinking span:nth-child(3) {
+            animation-delay: .4s
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(.6);
+                opacity: .4
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        /* ── CONNECTION STATUS ── */
+        .conn-banner {
+            background: #fff3cd;
+            border-bottom: 2px solid #d97706;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #856404;
+            display: none
+        }
+
+        .conn-banner.show {
+            display: flex
+        }
+
+        .conn-banner.connected {
+            background: var(--g-pale);
+            border-color: var(--g-mid);
+            color: var(--g-dark)
+        }
+
+        /* ── LOADING SKELETON ── */
+        .skeleton {
+            background: linear-gradient(90deg, var(--gl) 25%, #fff 50%, var(--gl) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
+
+        .skeleton-card {
+            height: 80px;
+            margin: 8px 16px;
+            border-radius: var(--r-sm)
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── TOAST ── -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+    <div class="screen active" id="loginScreen">
+        <div class="login-card">
+            <div class="brand-icon">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <path d="M20 4L6 10v10c0 8.84 5.93 17.1 14 19.6C28.07 37.1 34 28.84 34 20V10L20 4z" fill="white"
+                        opacity=".9" />
+                    <path d="M14 20l4.5 4.5 8-8" stroke="#0a6640" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </div>
+            <div class="brand-name">Spamorix</div>
+            <div class="brand-tag">Your AI-Powered Fraud Shield</div>
+
+            <div class="input-wrap">
+                <span class="input-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="4" width="20" height="16" rx="2" />
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    </svg>
+                </span>
+                <input type="email" class="form-input" id="loginEmail" placeholder="you@example.com">
+            </div>
+
+            <div class="input-wrap">
+                <span class="input-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 14 19.79 19.79 0 0 1 1.08 5.48 2 2 0 0 1 3.06 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 18l.92-1.08z" />
+                    </svg>
+                </span>
+                <input type="tel" class="form-input" id="loginPhone" placeholder="+91 98765 43210">
+            </div>
+
+            <button class="btn-primary" id="loginBtn" onclick="doLogin()">🔒 Login Securely</button>
+
+            <div class="trust-badges">
+                <span class="trust-badge">✅ 256-bit Encrypted</span>
+                <span class="trust-badge">🤖 AI Protected</span>
+                <span class="trust-badge">🏛 RBI Compliant</span>
+            </div>
+            <div class="login-footer">New user? <span onclick="showToast('Account auto-created on first login!')">Create
+                    Account</span></div>
+
+            <!-- Backend connection status -->
+            <div id="backendStatus"
+                style="margin-top:16px;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;text-align:center;background:#f0fdf7;color:var(--g-dark);border:1px solid var(--g-pale)">
+                🔄 Checking backend connection...
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+     MAIN APP SCREEN
+══════════════════════════════════════════ -->
+    <div class="screen" id="appScreen">
+        <!-- Connection Banner -->
+        <div class="conn-banner" id="connBanner">
+            <span id="connText">⚠️ Offline mode — backend not connected</span>
+        </div>
+
+        <!-- Top Nav -->
+        <div class="top-nav">
+            <div class="nav-brand">🛡 Spamorix</div>
+            <div class="nav-actions">
+                <button class="nav-icon-btn" onclick="showIntervention('demo')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    <div class="notif-dot" id="notifDot"></div>
+                </button>
+                <div class="avatar" id="userAvatar">R</div>
+            </div>
+        </div>
+
+        <div class="main-content" id="mainContent"></div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <button class="nav-item active" id="navHome" onclick="showTab('home')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>Home
+            </button>
+            <button class="nav-item" id="navMessages" onclick="showTab('messages')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>Messages
+            </button>
+            <button class="nav-item" id="navScan" onclick="showTab('scan')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>Scan
+            </button>
+            <button class="nav-item" id="navSettings" onclick="showTab('settings')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+     CHAT SCREEN
+══════════════════════════════════════════ -->
+    <div class="screen" id="chatScreen">
+        <div class="chat-header">
+            <button class="back-btn" onclick="showTab('messages')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="15 18 9 12 15 6" />
+                </svg>
+            </button>
+            <div class="chat-contact">
+                <div class="chat-contact-name" id="chatContactName">—</div>
+                <div class="chat-contact-status">🤖 AI monitoring active</div>
+            </div>
+            <div class="chat-risk-badge" id="chatRiskBadge" style="background:var(--g-pale);color:var(--g-dark)">✅ Safe
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-bar">
+            <input class="chat-input" id="chatInputField" placeholder="Type a message..."
+                onkeydown="if(event.key==='Enter')sendChatMsg()">
+            <button class="send-btn" onclick="sendChatMsg()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+     INTERVENTION OVERLAY
+══════════════════════════════════════════ -->
+    <div class="overlay-backdrop" id="interventionOverlay">
+        <div class="intervention-modal">
+            <div class="modal-pill"></div>
+            <div class="modal-alert-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path
+                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+            </div>
+            <div class="modal-title">⛔ STOP! This person<br>is trying to trick you!</div>
+            <div class="modal-desc" id="interventionDesc">Our AI has detected a dangerous pattern. This message is
+                designed to
+                steal your money or personal information.</div>
+            <div class="modal-details">
+                <div class="modal-detail-row"><span class="modal-detail-icon">🚨</span>
+                    <div class="modal-detail-text">Fake bank/UPI urgency detected — do NOT share your OTP or PIN</div>
+                </div>
+                <div class="modal-detail-row"><span class="modal-detail-icon">⚠️</span>
+                    <div class="modal-detail-text">Pressure tactics: "Limited time", "Act now" — classic scam signs
+                    </div>
+                </div>
+                <div class="modal-detail-row"><span class="modal-detail-icon">🔐</span>
+                    <div class="modal-detail-text">No real bank or government officer ever asks for your OTP</div>
+                </div>
+            </div>
+            <button class="btn-danger" onclick="blockAndReport()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                </svg>
+                Block &amp; Report Scammer
+            </button>
+            <button class="btn-secondary" onclick="trustOverride()">I trust this person (Risky ⚠️)</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+     JAVASCRIPT — FULL STACK LOGIC
+══════════════════════════════════════════ -->
+    <script>
+        'use strict';
+
+        // ════════════════════════════════════════════════════════════
+        // CONFIG — Change API_BASE to your backend URL
+        // ════════════════════════════════════════════════════════════
+        const API_BASE = 'http://localhost:5000/api';
+        const SOCKET_URL = 'http://localhost:5000';
+
+        // ════════════════════════════════════════════════════════════
+        // STATE
+        // ════════════════════════════════════════════════════════════
+        let appState = {
+            user: null,
+            token: null,
+            backendOnline: false,
+            socket: null,
+            currentTab: 'home',
+            activeChat: null,
+            activeMessageId: null,
+            stats: null,
+            messages: [],
+            alerts: [],
+        };
+
+        // ════════════════════════════════════════════════════════════
+        // TOKEN HELPERS
+        // ════════════════════════════════════════════════════════════
+        const Token = {
+            save: (t) => localStorage.setItem('spx_token', t),
+            get: () => localStorage.getItem('spx_token'),
+            clear: () => localStorage.removeItem('spx_token'),
+            saveUser: (u) => localStorage.setItem('spx_user', JSON.stringify(u)),
+            getUser: () => { try { return JSON.parse(localStorage.getItem('spx_user')); } catch { return null; } },
+        };
+
+        // ════════════════════════════════════════════════════════════
+        // API CLIENT — All backend calls go through here
+        // ════════════════════════════════════════════════════════════
+        const API = {
+            request: async (endpoint, options = {}) => {
+                const token = Token.get();
+                const config = {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                        ...options.headers,
+                    },
+                    ...options,
+                };
+                try {
+                    const res = await fetch(`${API_BASE}${endpoint}`, config);
+                    const data = await res.json();
+                    if (res.status === 401) { Token.clear(); goToLogin(); return null; }
+                    return { ok: res.ok, status: res.status, data };
+                } catch (err) {
+                    return { ok: false, status: 0, data: { success: false, error: 'Network error — is the backend running?' } };
+                }
+            },
+
+            // Auth
+            login: (email, phone) => API.request('/auth/login', {
+                method: 'POST', body: JSON.stringify({ email, phone }),
+            }),
+            getMe: () => API.request('/auth/me'),
+            logout: () => API.request('/auth/logout', { method: 'POST' }),
+
+            // Messages
+            getMessages: (params = {}) => {
+                const q = new URLSearchParams(params).toString();
+                return API.request(`/messages${q ? '?' + q : ''}`);
+            },
+            addMessage: (content, source = 'SMS', sender = {}) => API.request('/messages', {
+                method: 'POST', body: JSON.stringify({ content, source, sender }),
+            }),
+            scanMessage: (content, source = 'SMS') => API.request('/messages/scan', {
+                method: 'POST', body: JSON.stringify({ content, source }),
+            }),
+
+            // Alerts & Stats
+            getAlerts: () => API.request('/alerts'),
+            getAlertSummary: () => API.request('/alerts/summary'),
+            getStats: () => API.request('/stats'),
+            blockReport: (messageId, action = 'block_and_report', reason = 'fraud') =>
+                API.request('/block', { method: 'POST', body: JSON.stringify({ messageId, action, reason }) }),
+        };
+
+        // ════════════════════════════════════════════════════════════
+        // BACKEND HEALTH CHECK
+        // ════════════════════════════════════════════════════════════
+        async function checkBackend() {
+            try {
+                const res = await fetch(`${SOCKET_URL}/health`, { signal: AbortSignal.timeout(3000) });
+                const data = await res.json();
+                appState.backendOnline = data.status === 'healthy';
+            } catch {
+                appState.backendOnline = false;
+            }
+            updateBackendStatus();
+        }
+
+        function updateBackendStatus() {
+            const el = document.getElementById('backendStatus');
+            const banner = document.getElementById('connBanner');
+            const text = document.getElementById('connText');
+            if (!el) return;
+            if (appState.backendOnline) {
+                el.style.background = 'var(--g-pale)'; el.style.color = 'var(--g-dark)'; el.style.borderColor = 'var(--g-mid)';
+                el.textContent = '✅ Backend connected — http://localhost:5000';
+                if (banner) { banner.className = 'conn-banner connected show'; text.textContent = '✅ Connected to Spamorix backend'; setTimeout(() => banner.classList.remove('show'), 3000); }
+            } else {
+                el.style.background = '#fff3cd'; el.style.color = '#856404'; el.style.borderColor = 'var(--amber)';
+                el.textContent = '⚠️ Backend offline — start with: npm run dev';
+                if (banner) { banner.classList.add('show'); text.textContent = '⚠️ Backend offline — running in demo mode'; }
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // SOCKET.IO — Real-Time Alerts
+        // ════════════════════════════════════════════════════════════
+        function connectSocket(userId) {
+            if (!appState.backendOnline) return;
+            try {
+                appState.socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+                appState.socket.on('connect', () => {
+                    appState.socket.emit('join', userId);
+                });
+                appState.socket.on('new_threat', (alert) => {
+                    document.getElementById('notifDot').classList.add('show');
+                    showIntervention('realtime', alert.intervention);
+                });
+                appState.socket.on('block_confirmed', (data) => {
+                    showToast(`🛡 Blocked! Report: ${data.reportId}`);
+                });
+            } catch (e) { /* socket not available */ }
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // LOGIN
+        // ════════════════════════════════════════════════════════════
+        async function doLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+            if (!email || !phone) { showToast('⚠️ Fill in all fields'); return; }
+            if (!email.includes('@')) { showToast('⚠️ Enter a valid email'); return; }
+
+            const btn = document.getElementById('loginBtn');
+            btn.textContent = '🔄 Logging in...'; btn.disabled = true;
+
+            if (appState.backendOnline) {
+                // ── REAL LOGIN via backend ──
+                const result = await API.login(email, phone);
+                btn.textContent = '🔒 Login Securely'; btn.disabled = false;
+
+                if (result?.data?.success) {
+                    Token.save(result.data.token);
+                    Token.saveUser(result.data.user);
+                    appState.token = result.data.token;
+                    appState.user = result.data.user;
+                    initApp();
+                } else {
+                    showToast('❌ ' + (result?.data?.error || 'Login failed'));
+                }
+            } else {
+                // ── OFFLINE / DEMO MODE ──
+                await new Promise(r => setTimeout(r, 800));
+                btn.textContent = '🔒 Login Securely'; btn.disabled = false;
+                appState.user = { name: email.split('@')[0], email, phone, stats: { trustScore: 87, totalMessages: 142, threatsBlocked: 7 }, id: 'demo' };
+                appState.token = 'demo_token';
+                Token.saveUser(appState.user);
+                initApp();
+                showToast('⚠️ Running in demo mode — start backend for full features');
+            }
+        }
+
+        function goToLogin() {
+            document.getElementById('appScreen').classList.remove('active');
+            document.getElementById('chatScreen').classList.remove('active');
+            document.getElementById('loginScreen').classList.add('active');
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // INIT APP after login
+        // ════════════════════════════════════════════════════════════
+        function initApp() {
+            const u = appState.user;
+            const name = u?.name || u?.email?.split('@')[0] || 'User';
+            const avatar = name.charAt(0).toUpperCase();
+            document.getElementById('userAvatar').textContent = avatar;
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('appScreen').classList.add('active');
+            if (appState.backendOnline && u?.id) connectSocket(u.id);
+            showTab('home');
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // TABS
+        // ════════════════════════════════════════════════════════════
+        function showTab(tab) {
+            appState.currentTab = tab;
+            ['navHome', 'navMessages', 'navScan', 'navSettings'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+            document.getElementById('chatScreen').classList.remove('active');
+            document.getElementById('appScreen').classList.add('active');
+            const m = { home: 'navHome', messages: 'navMessages', scan: 'navScan', settings: 'navSettings' };
+            if (m[tab]) document.getElementById(m[tab])?.classList.add('active');
+            const c = document.getElementById('mainContent');
+            if (tab === 'home') renderHome(c);
+            else if (tab === 'messages') renderMessages(c);
+            else if (tab === 'scan') renderScan(c);
+            else if (tab === 'settings') renderSettings(c);
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // HOME TAB — loads real stats from backend
+        // ════════════════════════════════════════════════════════════
+        async function renderHome(c) {
+            // Show skeleton while loading
+            c.innerHTML = `
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+  `;
+
+            // Fetch stats and messages
+            let stats = { totalMessagesScanned: 142, threatsDetected: 7, trustScore: 87, bySource: { SMS: 80, WhatsApp: 45, UPI: 17 }, byRisk: { high: 7, medium: 5, low: 130 }, today: { messages: 12, threats: 2 } };
+            let recentMessages = [];
+
+            if (appState.backendOnline) {
+                const [statsRes, msgRes, alertRes] = await Promise.all([
+                    API.getStats(),
+                    API.getMessages({ limit: 5, sortBy: 'createdAt', sortOrder: 'desc' }),
+                    API.getAlertSummary(),
+                ]);
+                if (statsRes?.data?.success) stats = statsRes.data.stats;
+                if (msgRes?.data?.success) recentMessages = msgRes.data.messages || [];
+                if (alertRes?.data?.summary?.unreadHighRisk > 0) document.getElementById('notifDot').classList.add('show');
+            }
+
+            appState.stats = stats;
+            const score = stats.trustScore || 87;
+            const offset = Math.round(201 - (score / 100) * 201);
+            const barCount = Math.round(score / 20);
+
+            c.innerHTML = `
+  <!-- Protection Banner -->
+  <div class="protection-banner">
+    <div class="shield-wrap">
+      <svg class="shield-pulse" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(255,255,255,0.2)"/>
+        <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="banner-text">
+      <div class="banner-status">✅ ${appState.backendOnline ? 'Live — Backend Connected' : 'Demo Mode'}</div>
+      <div class="banner-title">You Are Protected</div>
+      <div class="banner-sub">AI Fraud Shield is ON · ${stats.today?.messages || 0} messages today</div>
+    </div>
+  </div>
+
+  <!-- Trust Score -->
+  <div class="trust-score-card">
+    <div class="score-ring">
+      <svg viewBox="0 0 80 80">
+        <circle class="score-ring-bg" cx="40" cy="40" r="32"/>
+        <circle class="score-ring-fg" cx="40" cy="40" r="32" style="stroke-dashoffset:${offset}"/>
+      </svg>
+      <div class="score-label">
+        <div class="score-num">${score}</div>
+        <div class="score-pct">${score >= 80 ? 'GREAT' : score >= 60 ? 'GOOD' : score >= 40 ? 'FAIR' : 'POOR'}</div>
+      </div>
+    </div>
+    <div class="score-info">
+      <div class="score-title">Trust Score</div>
+      <div class="score-desc">Your digital safety rating. Higher is safer.</div>
+      <div class="score-bars">
+        ${[1, 2, 3, 4, 5].map(i => `<div class="score-bar${i > barCount ? ' dim' : ''}"></div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="section-title">Quick Stats</div>
+  <div class="quick-stats">
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="stat-num">${stats.totalMessagesScanned || 0}</div>
+      <div class="stat-label">Messages Scanned</div>
+      <div class="stat-change up">↑ ${stats.today?.messages || 0} today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="stat-num">${stats.threatsDetected || 0}</div>
+      <div class="stat-label">Threats Blocked</div>
+      <div class="stat-change warn">⚠️ ${stats.today?.threats || 0} critical</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="stat-num">${stats.byRisk?.medium || 0}</div>
+      <div class="stat-label">Suspicious</div>
+      <div class="stat-change warn">Medium risk</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div class="stat-num">${Object.keys(stats.bySource || { SMS: 1, WhatsApp: 1, UPI: 1 }).length}</div>
+      <div class="stat-label">Channels Watched</div>
+      <div class="stat-change up">${Object.keys(stats.bySource || { SMS: '', WhatsApp: '', UPI: '' }).join(', ')}</div>
+    </div>
+  </div>
+
+  <!-- AI Engine -->
+  <div class="section-title">AI Engine Status</div>
+  <div class="engine-card">
+    <div class="engine-header">
+      <div class="engine-title">🤖 Sentiment &amp; Intent Engine</div>
+      <div class="engine-live"><div class="live-dot"></div>${appState.backendOnline ? 'LIVE' : 'DEMO'}</div>
+    </div>
+    <div class="engine-row"><span>💬</span><div class="engine-label">SMS Phishing Detector</div><div class="engine-ok">ON</div></div>
+    <div class="engine-row"><span>💚</span><div class="engine-label">WhatsApp Fraud Scanner</div><div class="engine-ok">ON</div></div>
+    <div class="engine-row"><span>💸</span><div class="engine-label">UPI Scam Blocker</div><div class="engine-ok">ON</div></div>
+    <div class="engine-row"><span>🧠</span><div class="engine-label">Trust Manipulation AI</div><div class="engine-ok">ON</div></div>
+  </div>
+
+  <!-- Monitored Channels -->
+  <div class="section-title">Monitored Channels</div>
+  <div class="channels-wrap">
+    <div class="channel-row"><div class="channel-icon" style="background:#e8f5fe">💬</div><div class="channel-info"><div class="channel-name">SMS Messages</div><div class="channel-detail">${stats.bySource?.SMS || 0} scanned</div></div><div class="channel-badge badge-active">Active</div></div>
+    <div class="channel-row"><div class="channel-icon" style="background:#e8fce8">💚</div><div class="channel-info"><div class="channel-name">WhatsApp</div><div class="channel-detail">${stats.bySource?.WhatsApp || 0} scanned</div></div><div class="channel-badge badge-warn">⚠️ Active</div></div>
+    <div class="channel-row"><div class="channel-icon" style="background:#fff3e0">💸</div><div class="channel-info"><div class="channel-name">UPI / Payments</div><div class="channel-detail">${stats.bySource?.UPI || 0} scanned</div></div><div class="channel-badge badge-active">Secure</div></div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="section-title">Recent Activity <button class="section-link" onclick="showTab('messages')">See All</button></div>
+  <div class="activity-feed" id="recentActivity">
+    ${recentMessages.length > 0 ? recentMessages.map(m => activityItemHTML(m)).join('') : defaultActivity()}
+  </div>
+
+  <!-- Spam Insights -->
+  <div class="section-title">Spam Insights</div>
+  <div class="insights-card">
+    ${insightRow('Bank/OTP Scams', 'bar-red', 75)}
+    ${insightRow('Lottery Fraud', 'bar-amber', 55)}
+    ${insightRow('Fake Delivery', 'bar-blue', 40)}
+    ${insightRow('KYC Fraud', 'bar-red', 60)}
+    ${insightRow('Safe Messages', 'bar-green', Math.round((stats.safeMessages || 130) / (stats.totalMessagesScanned || 142) * 100) || 88)}
+  </div>
+  <div style="height:16px"></div>`;
+        }
+
+        function insightRow(label, barClass, pct) {
+            return `<div class="insight-row"><div class="insight-label">${label}</div><div class="insight-bar-wrap"><div class="insight-bar ${barClass}" style="width:${pct}%"></div></div><div class="insight-pct">${pct}%</div></div>`;
+        }
+
+        function activityItemHTML(m) {
+            const risk = m.riskLevel || 'low';
+            const dot = risk === 'high' ? 'dot-danger' : risk === 'medium' ? 'dot-warn' : 'dot-safe';
+            const emoji = risk === 'high' ? '🚨' : risk === 'medium' ? '⚠️' : '✅';
+            const tag = `tag-${risk === 'high' ? 'danger' : risk === 'medium' ? 'warn' : 'safe'}`;
+            const label = risk === 'high' ? '🛑 Phishing' : risk === 'medium' ? '⚠️ Suspicious' : '✅ Safe';
+            const preview = (m.content || '').substring(0, 60) + ((m.content || '').length > 60 ? '...' : '');
+            const time = m.timeAgo || new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return `<div class="activity-item ${risk}" onclick="openMsgDetail('${m._id || ''}','${risk}')">
+    <div class="activity-dot ${dot}">${emoji}</div>
+    <div class="activity-body">
+      <div class="activity-sender">${m.sender?.name || m.source || 'Unknown'}</div>
+      <div class="activity-msg">${preview}</div>
+      <div class="activity-meta"><span class="activity-time">${time}</span><span class="activity-tag ${tag}">${label}</span></div>
+    </div>
+  </div>`;
+        }
+
+        function defaultActivity() {
+            return `
+  <div class="activity-item danger" onclick="showIntervention('demo')">
+    <div class="activity-dot dot-danger">🚨</div>
+    <div class="activity-body"><div class="activity-sender">SBI Bank Alert (FAKE)</div><div class="activity-msg">Your account will be blocked. Click link to verify OTP now...</div><div class="activity-meta"><span class="activity-time">10:32 AM</span><span class="activity-tag tag-danger">🛑 Phishing</span></div></div>
+  </div>
+  <div class="activity-item warn">
+    <div class="activity-dot dot-warn">⚠️</div>
+    <div class="activity-body"><div class="activity-sender">Unknown +91 80012 XXXXX</div><div class="activity-msg">You won Rs.50,000 lottery! Send Rs.500 to claim prize...</div><div class="activity-meta"><span class="activity-time">09:15 AM</span><span class="activity-tag tag-warn">⚠️ Suspicious</span></div></div>
+  </div>
+  <div class="activity-item safe">
+    <div class="activity-dot dot-safe">✅</div>
+    <div class="activity-body"><div class="activity-sender">Rahul (Brother)</div><div class="activity-msg">Bhai, kab aa raha hai ghar pe?</div><div class="activity-meta"><span class="activity-time">08:45 AM</span><span class="activity-tag tag-safe">✅ Safe</span></div></div>
+  </div>`;
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // MESSAGES TAB — loads from backend
+        // ════════════════════════════════════════════════════════════
+        async function renderMessages(c) {
+            c.innerHTML = `<div class="section-title" style="margin-top:16px">All Messages</div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>`;
+
+            let messages = [];
+            if (appState.backendOnline) {
+                const res = await API.getMessages({ limit: 20, sortBy: 'createdAt', sortOrder: 'desc' });
+                if (res?.data?.success) messages = res.data.messages || [];
+            }
+
+            if (messages.length === 0) {
+                // fallback demo data
+                messages = [
+                    { _id: 'demo1', content: 'Your SBI account will be BLOCKED. Verify KYC immediately: sbi-verify.xyz/kyc', source: 'SMS', riskLevel: 'high', sender: { name: 'SBI Alert (FAKE)' }, createdAt: new Date() },
+                    { _id: 'demo2', content: 'You WON Rs.50,000 in Jio Lucky Draw! Send Rs.500 to claim prize via UPI: claim@paytm', source: 'WhatsApp', riskLevel: 'high', sender: { name: 'Unknown Caller' }, createdAt: new Date() },
+                    { _id: 'demo3', content: 'Bhai, kab aa raha hai ghar pe? Dinner ke liye aaja.', source: 'WhatsApp', riskLevel: 'low', sender: { name: 'Rahul (Brother)' }, createdAt: new Date() },
+                    { _id: 'demo4', content: 'Your Amazon order #405-1234567 has been shipped. Expected delivery: Today by 6 PM.', source: 'SMS', riskLevel: 'low', sender: { name: 'Amazon Delivery' }, createdAt: new Date() },
+                    { _id: 'demo5', content: 'URGENT: Your subscription expires today. Click link to renew 50% off! Limited time.', source: 'SMS', riskLevel: 'medium', sender: { name: 'Netflix-Promo' }, createdAt: new Date() },
+                ];
+            }
+            appState.messages = messages;
+
+            c.innerHTML = `<div class="section-title" style="margin-top:16px">All Messages <span style="font-size:12px;color:var(--gt);font-weight:600">${messages.length} total</span></div>
+  <div class="messages-list">
+  ${messages.map(m => {
+                const risk = m.riskLevel || 'low';
+                const avClass = risk === 'high' ? 'danger-avatar' : risk === 'medium' ? 'amber-avatar' : '';
+                const avText = (m.sender?.name || m.source || '?').charAt(0).toUpperCase();
+                const preview = (m.content || '').substring(0, 55) + '...';
+                const time = new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const badge = risk === 'high' ? '🚨' : risk === 'medium' ? '⚠️' : '✅';
+                return `<div class="msg-convo" onclick="openMsgDetail('${m._id}','${risk}','${encodeURIComponent(m.content || '')}','${encodeURIComponent(m.sender?.name || m.source || '')}')">
+      <div class="convo-avatar ${avClass}">${avText}</div>
+      <div class="convo-info"><div class="convo-name">${m.sender?.name || m.source || 'Unknown'}</div><div class="convo-preview">${preview}</div></div>
+      <div class="convo-right"><div class="convo-time">${time}</div><div style="margin-top:4px;text-align:right;font-size:16px">${badge}</div></div>
+    </div>`;
+            }).join('')}
+  </div>`;
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // MESSAGE DETAIL (chat view)
+        // ════════════════════════════════════════════════════════════
+        function openMsgDetail(id, risk, content, senderName) {
+            appState.activeMessageId = id;
+            const dName = senderName ? decodeURIComponent(senderName) : 'Unknown';
+            const dContent = content ? decodeURIComponent(content) : '';
+            document.getElementById('appScreen').classList.remove('active');
+            document.getElementById('chatScreen').classList.add('active');
+            document.getElementById('chatContactName').textContent = dName;
+            const b = document.getElementById('chatRiskBadge');
+            b.textContent = risk === 'high' ? '🚨 Danger' : risk === 'medium' ? '⚠️ Caution' : '✅ Safe';
+            b.style.background = risk === 'high' ? '#fff5f5' : risk === 'medium' ? '#fffbeb' : 'var(--g-pale)';
+            b.style.color = risk === 'high' ? 'var(--danger)' : risk === 'medium' ? 'var(--amber)' : 'var(--g-dark)';
+
+            const c = document.getElementById('chatMessages');
+            const warnHTML = risk !== 'low' ? `<div class="ai-warning">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+    <span>${risk === 'high' ? '🚨 HIGH RISK: This is likely a scam! Do not share any OTP, PIN, or personal information.' : '⚠️ CAUTION: This message looks suspicious. Do not click any links.'}</span>
+  </div>` : '';
+
+            c.innerHTML = `
+  <div class="msg-bubble-wrap them">
+    <div>
+      <div class="msg-bubble">${dContent || 'Message content'}<div class="msg-time">Received</div></div>
+      ${warnHTML}
+    </div>
+  </div>`;
+            c.scrollTop = c.scrollHeight;
+
+            if (risk === 'high') setTimeout(() => showIntervention('message'), 800);
+        }
+
+        async function sendChatMsg() {
+            const inp = document.getElementById('chatInputField');
+            const txt = inp.value.trim(); if (!txt) return;
+            inp.value = '';
+            const c = document.getElementById('chatMessages');
+
+            // Add user bubble
+            c.innerHTML += `<div class="msg-bubble-wrap me"><div class="msg-bubble">${txt}<div class="msg-time">Just now</div></div></div>`;
+
+            // Add thinking indicator
+            const th = document.createElement('div');
+            th.className = 'msg-bubble-wrap them'; th.id = 'thinking';
+            th.innerHTML = '<div class="ai-thinking"><span></span><span></span><span></span></div>';
+            c.appendChild(th); c.scrollTop = c.scrollHeight;
+
+            // If backend online, save message and get analysis
+            if (appState.backendOnline) {
+                const res = await API.addMessage(txt, 'WhatsApp');
+                th.remove();
+                if (res?.data?.data?.intervention?.alert) {
+                    c.innerHTML += `<div class="ai-warning"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg><span>AI Alert: ${res.data.data.intervention.message}</span></div>`;
+                } else {
+                    c.innerHTML += `<div class="msg-bubble-wrap them"><div class="msg-bubble">Message analyzed — ${res?.data?.data?.riskLevel || 'low'} risk detected.<div class="msg-time">Just now</div></div></div>`;
+                }
+            } else {
+                await new Promise(r => setTimeout(r, 1000));
+                th.remove();
+                c.innerHTML += `<div class="msg-bubble-wrap them"><div class="msg-bubble">Message received (demo mode — backend offline for real analysis).<div class="msg-time">Just now</div></div></div>`;
+            }
+            c.scrollTop = c.scrollHeight;
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // SCAN TAB — calls backend /api/messages/scan
+        // ════════════════════════════════════════════════════════════
+        function renderScan(c) {
+            c.innerHTML = `
+  <div class="scan-wrap">
+    <div class="section-title" style="margin:0 0 12px">🔍 Message Scanner</div>
+    <div class="scan-input-card">
+      <label class="form-label">Paste suspicious message below:</label>
+      <textarea class="scan-textarea" id="scanText" placeholder="Paste any SMS, WhatsApp message, or UPI request to check if it's safe..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <select id="scanSource" style="padding:10px 12px;border:2px solid var(--gl);border-radius:var(--r-sm);font-family:var(--font);font-size:13px;font-weight:700;color:#1a3328;background:var(--off);outline:none;flex:1">
+          <option>SMS</option><option>WhatsApp</option><option>UPI</option><option>Call</option><option>Email</option>
+        </select>
+        <button class="scan-btn" style="flex:2;margin-top:0" onclick="doScan()">🤖 Scan with AI</button>
+      </div>
+    </div>
+    <div class="scan-result" id="scanResult">
+      <div class="result-score-row">
+        <div class="result-gauge gauge-warn" id="resultGauge">?</div>
+        <div><div class="result-title" id="resultTitle">Analyzing...</div><div class="result-desc" id="resultDesc">Please wait</div></div>
+      </div>
+      <div id="resultKeywords"></div>
+      <div class="result-tags" id="resultTags"></div>
+    </div>
+  </div>`;
+        }
+
+        async function doScan() {
+            const txt = document.getElementById('scanText')?.value.trim();
+            const src = document.getElementById('scanSource')?.value || 'SMS';
+            if (!txt) { showToast('⚠️ Paste a message first'); return; }
+
+            const r = document.getElementById('scanResult'); r.classList.add('visible');
+            document.getElementById('resultTitle').textContent = '🤖 Scanning...';
+            document.getElementById('resultDesc').textContent = 'Analyzing with AI engine...';
+            document.getElementById('resultGauge').textContent = '...';
+            document.getElementById('resultGauge').className = 'result-gauge gauge-warn';
+            document.getElementById('resultTags').innerHTML = '';
+            document.getElementById('resultKeywords').innerHTML = '';
+
+            let analysis;
+
+            if (appState.backendOnline) {
+                // ── REAL backend scan ──
+                const res = await API.scanMessage(txt, src);
+                if (res?.data?.success) {
+                    analysis = res.data.analysis;
+                }
+            }
+
+            if (!analysis) {
+                // ── Client-side fallback scan ──
+                analysis = clientSideScan(txt, src);
+            }
+
+            const gc = analysis.riskLevel === 'safe' || analysis.riskLevel === 'low' ? 'gauge-safe' : analysis.riskLevel === 'medium' ? 'gauge-warn' : 'gauge-danger';
+            document.getElementById('resultGauge').textContent = analysis.riskScore || 0;
+            document.getElementById('resultGauge').className = `result-gauge ${gc}`;
+            document.getElementById('resultTitle').textContent = analysis.riskLevel === 'high' ? '🚨 High Risk — Likely Scam!' : analysis.riskLevel === 'medium' ? '⚠️ Suspicious Message' : '✅ Appears Safe';
+            document.getElementById('resultDesc').textContent = analysis.intervention?.message || (analysis.riskLevel === 'low' ? 'No suspicious patterns found.' : 'Review carefully before trusting this message.');
+
+            if (analysis.detectedKeywords?.length) {
+                document.getElementById('resultKeywords').innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--gt);margin-top:10px;margin-bottom:6px">DETECTED PATTERNS:</div>`;
+            }
+            document.getElementById('resultTags').innerHTML = (analysis.detectedKeywords || []).map(k =>
+                `<div class="result-tag ${analysis.riskLevel === 'high' ? 'red' : analysis.riskLevel === 'medium' ? 'amber' : ''}">${k}</div>`
+            ).join('');
+
+            if (analysis.riskLevel === 'high') setTimeout(() => showIntervention('scan'), 400);
+        }
+
+        // Client-side fallback scan (mirrors spamDetector.js logic)
+        function clientSideScan(content, source) {
+            const cl = content.toLowerCase();
+            const HIGH = ['lottery', 'you have won', 'winner', 'share your otp', 'send otp', 'account will be blocked', 'account suspended', 'kyc expired', 'click this link', 'verify immediately', 'upi fraud', 'send money to receive', 'earn lakhs', 'aapka account band', 'otp share karein'];
+            const MED = ['urgent', 'act now', 'limited time', 'expires soon', 'click link', 'verify your account', 'dear customer', 'congratulations you', 'work from home', 'guaranteed returns'];
+            let score = 0; const matched = [];
+            HIGH.forEach(k => { if (cl.includes(k)) { score += 30; matched.push(k); } });
+            MED.forEach(k => { if (cl.includes(k)) { score += 15; matched.push(k); } });
+            if (/https?:\/\/bit\.ly|tinyurl|\d{1,3}\.\d{1,3}\.\d{1,3}|-sbi|-hdfc|kyc-verify/.test(cl)) { score += 25; matched.push('suspicious URL'); }
+            const w = { SMS: 1.2, WhatsApp: 1.1, UPI: 1.3 }[source] || 1;
+            score = Math.min(100, Math.round(score * w));
+            const riskLevel = score >= 50 ? 'high' : score >= 20 ? 'medium' : 'low';
+            return {
+                riskLevel, riskScore: score, isFraud: riskLevel === 'high',
+                detectedKeywords: matched,
+                intervention: {
+                    alert: riskLevel === 'high',
+                    message: riskLevel === 'high' ? 'STOP: This may be a scam! Do not share OTP, PIN, or personal details.' : riskLevel === 'medium' ? 'CAUTION: This message looks suspicious.' : 'Message appears safe.',
+                }
+            };
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // SETTINGS TAB
+        // ════════════════════════════════════════════════════════════
+        function renderSettings(c) {
+            const u = appState.user || Token.getUser() || {};
+            const name = u.name || u.email?.split('@')[0] || 'User';
+            c.innerHTML = `
+  <div class="settings-wrap">
+    <div class="section-title" style="margin:16px 0 12px">⚙️ Settings</div>
+    <div style="background:#fff;border-radius:var(--r);padding:16px 18px;margin-bottom:20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px">
+      <div class="avatar" style="width:52px;height:52px;font-size:20px;border-radius:16px;flex-shrink:0">${name.charAt(0).toUpperCase()}</div>
+      <div>
+        <div style="font-size:16px;font-weight:800">${name}</div>
+        <div style="font-size:12px;color:var(--gt)">${u.email || ''}</div>
+        <div style="font-size:12px;color:var(--gt)">${u.phone || ''}</div>
+        <div style="margin-top:4px">
+          <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;background:${appState.backendOnline ? 'var(--g-pale)' : '#fff3cd'};color:${appState.backendOnline ? 'var(--g-dark)' : '#856404'}">
+            ${appState.backendOnline ? '🟢 Backend Live' : '🟡 Demo Mode'}
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Protection</div>
+      ${stRow('🛡', 'AI Fraud Detection', 'Powered by Spamorix Engine', true)}
+      ${stRow('💬', 'SMS Monitoring', 'Scan all incoming SMS', true)}
+      ${stRow('💚', 'WhatsApp Protection', 'Analyze links and messages', true)}
+      ${stRow('💸', 'UPI Scam Blocker', 'Verify payment requests', true)}
+      ${stRow('🔔', 'Real-time Alerts', 'Immediate threat notifications', true)}
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Backend Connection</div>
+      <div class="settings-row">
+        <div class="settings-icon" style="background:var(--g-pale)">🔗</div>
+        <div style="flex:1">
+          <div class="settings-label">API Endpoint</div>
+          <div class="settings-sub">${API_BASE}</div>
+        </div>
+        <div style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:8px;background:${appState.backendOnline ? 'var(--g-pale)' : '#fff5f5'};color:${appState.backendOnline ? 'var(--g-dark)' : 'var(--danger)'}">
+          ${appState.backendOnline ? 'ONLINE' : 'OFFLINE'}
+        </div>
+      </div>
+      <div class="settings-row" onclick="recheckBackend()">
+        <div class="settings-icon" style="background:#e8f5fe">🔄</div>
+        <div class="settings-label">Reconnect Backend</div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Account</div>
+      <div class="settings-row" onclick="doLogout()">
+        <div class="settings-icon" style="background:#fff5f5">🚪</div>
+        <div class="settings-label" style="color:var(--danger)">Logout</div>
+      </div>
+    </div>
+    <div style="background:var(--g-pale);border-radius:var(--r);padding:14px 16px;margin-top:4px;font-size:12px;color:var(--g-dark);font-weight:600">
+      <div style="font-weight:800;margin-bottom:4px">🚀 To enable full backend:</div>
+      1. Extract spamorix-backend folder<br>
+      2. Run: <span style="font-family:var(--mono)">npm install</span><br>
+      3. Run: <span style="font-family:var(--mono)">npm run dev</span><br>
+      4. Reload this page
+    </div>
+  </div>`;
+        }
+
+        function stRow(icon, label, sub, on) {
+            const id = 't' + Math.random().toString(36).substr(2, 6);
+            return `<div class="settings-row">
+    <div class="settings-icon" style="background:var(--gl)">${icon}</div>
+    <div style="flex:1"><div class="settings-label">${label}</div><div class="settings-sub">${sub}</div></div>
+    <button class="toggle ${on ? 'on' : ''}" id="${id}" onclick="this.classList.toggle('on');showToast(this.classList.contains('on')?'✅ ${label} enabled':'${label} disabled')"></button>
+  </div>`;
+        }
+
+        async function recheckBackend() {
+            showToast('🔄 Checking backend...');
+            await checkBackend();
+            showToast(appState.backendOnline ? '✅ Backend is online!' : '❌ Backend offline — run npm run dev');
+            renderSettings(document.getElementById('mainContent'));
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // INTERVENTION OVERLAY
+        // ════════════════════════════════════════════════════════════
+        function showIntervention(source, data) {
+            const desc = data?.message || 'Our AI has detected a dangerous pattern. This message is designed to steal your money or personal information.';
+            document.getElementById('interventionDesc').textContent = desc;
+            document.getElementById('interventionOverlay').classList.add('show');
+        }
+
+        async function blockAndReport() {
+            document.getElementById('interventionOverlay').classList.remove('show');
+            if (appState.backendOnline && appState.activeMessageId && appState.activeMessageId !== 'demo') {
+                const res = await API.blockReport(appState.activeMessageId);
+                if (res?.data?.success) {
+                    showToast(`🛡 Blocked! Report ID: ${res.data.report?.reportId}`);
+                    return;
+                }
+            }
+            showToast('🛡 Scammer blocked and reported to Cyber Cell!');
+        }
+
+        function trustOverride() {
+            document.getElementById('interventionOverlay').classList.remove('show');
+            showToast('⚠️ Proceeding at your own risk. Stay cautious!');
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // LOGOUT
+        // ════════════════════════════════════════════════════════════
+        async function doLogout() {
+            if (appState.backendOnline) await API.logout();
+            Token.clear();
+            appState.user = null; appState.token = null;
+            if (appState.socket) appState.socket.disconnect();
+            goToLogin();
+            showToast('👋 Logged out safely');
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // TOAST
+        // ════════════════════════════════════════════════════════════
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // BOOT
+        // ════════════════════════════════════════════════════════════
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkBackend();
+            // Auto-login if token exists
+            const savedToken = Token.get();
+            const savedUser = Token.getUser();
+            if (savedToken && savedUser) {
+                appState.token = savedToken;
+                appState.user = savedUser;
+                if (appState.backendOnline) {
+                    // Verify token is still valid
+                    const res = await API.getMe();
+                    if (res?.data?.success) {
+                        appState.user = res.data.user;
+                        Token.saveUser(res.data.user);
+                        initApp(); return;
+                    }
+                } else {
+                    initApp(); return;
+                }
+            }
+            document.getElementById('loginScreen').classList.add('active');
+        });
+    </script>
+</body>
+
+</html>
