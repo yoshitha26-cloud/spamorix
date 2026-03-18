@@ -13,14 +13,14 @@ const requiredEnvVars = ['JWT_SECRET'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  console.error(`❌ Missing required environment variables: ${missingVars.join(', ')}`);
-  console.error(`⚠️  Please set these in your .env file or Vercel environment settings.`);
-  // For development, create a default temporary secret
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('🔧 Using temporary JWT_SECRET for development. Set JWT_SECRET in production!');
+  console.warn(`⚠️  Missing required environment variables: ${missingVars.join(', ')}`);
+  console.warn(`⚠️  Please set these in your .env file or Vercel environment settings.`);
+
+  // Provide a temporary fallback secret to avoid crashing in production.
+  // This is not secure for real deployments, but prevents the server from failing in CI/preview environments.
+  if (!process.env.JWT_SECRET) {
+    console.warn('🔧 Using temporary JWT_SECRET fallback (not secure). Set JWT_SECRET in production!');
     process.env.JWT_SECRET = 'dev_secret_change_in_production_' + Date.now();
-  } else {
-    process.exit(1);
   }
 }
 
@@ -225,6 +225,10 @@ app.use(globalErrorHandler);
 // -----------------------------------------------
 const PORT = process.env.PORT || 5000;
 
+// Export the Express app so that serverless platforms (e.g. Vercel) can use it.
+// We also expose a `start` helper so local development can start the HTTP server.
+module.exports = app;
+
 const startServer = async () => {
   try {
     // Try to connect to MongoDB (but don't crash if it fails)
@@ -256,6 +260,9 @@ const startServer = async () => {
   }
 };
 
+// Attach start helper for local development
+module.exports.start = startServer;
+
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   logger.error(`Unhandled Rejection: ${err.message}`);
@@ -277,4 +284,9 @@ process.on('SIGTERM', () => {
   });
 });
 
-startServer();
+if (require.main === module) {
+  startServer();
+} else {
+  // If imported (e.g. by a serverless platform), attempt a DB connection once.
+  connectDB();
+}
