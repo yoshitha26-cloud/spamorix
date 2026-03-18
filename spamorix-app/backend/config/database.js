@@ -7,6 +7,13 @@ const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 
 const connectDB = async () => {
+  // Check if MONGO_URI is provided
+  if (!process.env.MONGO_URI) {
+    logger.warn('⚠️  MONGO_URI is not set. Database features will be unavailable.');
+    logger.info('Set MONGO_URI environment variable to enable MongoDB connection.');
+    return false;
+  }
+
   try {
     // Mongoose connection options
     const options = {
@@ -32,10 +39,12 @@ const connectDB = async () => {
       logger.info('MongoDB reconnected successfully');
     });
 
+    return true;
+
   } catch (error) {
     logger.error(`❌ MongoDB Connection Failed: ${error.message}`);
-    // Exit process with failure code if we can't connect
-    process.exit(1);
+    logger.warn('⚠️  Server will continue without database. Features requiring DB will fail.');
+    return false;
   }
 };
 

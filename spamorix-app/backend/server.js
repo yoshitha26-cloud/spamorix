@@ -8,6 +8,22 @@
 // Load environment variables FIRST
 require('dotenv').config();
 
+// Validate critical environment variables
+const requiredEnvVars = ['JWT_SECRET'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error(`❌ Missing required environment variables: ${missingVars.join(', ')}`);
+  console.error(`⚠️  Please set these in your .env file or Vercel environment settings.`);
+  // For development, create a default temporary secret
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('🔧 Using temporary JWT_SECRET for development. Set JWT_SECRET in production!');
+    process.env.JWT_SECRET = 'dev_secret_change_in_production_' + Date.now();
+  } else {
+    process.exit(1);
+  }
+}
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -131,6 +147,7 @@ app.use('/api', generalLimiter);
 // Use this to verify the server is running
 // -----------------------------------------------
 app.get('/health', (req, res) => {
+  const isMongoConnected = require('mongoose').connection.readyState === 1;
   res.status(200).json({
     status: 'healthy',
     service: 'Spamorix API',
@@ -138,6 +155,7 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
     uptime: `${Math.floor(process.uptime())}s`,
+    database: isMongoConnected ? 'connected' : 'disconnected',
   });
 });
 
@@ -209,10 +227,10 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    // Connect to MongoDB first
-    await connectDB();
+    // Try to connect to MongoDB (but don't crash if it fails)
+    const dbConnected = await connectDB();
 
-    // Start the HTTP server
+    // Start the HTTP server regardless of DB status
     server.listen(PORT, () => {
       logger.info('');
       logger.info('╔════════════════════════════════════════╗');
@@ -222,6 +240,12 @@ const startServer = async () => {
       logger.info(`║  Mode     : ${process.env.NODE_ENV || 'development'}              ║`);
       logger.info(`║  API Base : http://localhost:${PORT}/api   ║`);
       logger.info(`║  Health   : http://localhost:${PORT}/health║`);
+      if (!dbConnected) {
+        logger.warn('║  Database : NOT CONNECTED (features unavailable)');
+        logger.warn('║  Note: Set MONGO_URI environment variable');
+      } else {
+        logger.info('║  Database : CONNECTED                 ║');
+      }
       logger.info('╚════════════════════════════════════════╝');
       logger.info('');
     });
