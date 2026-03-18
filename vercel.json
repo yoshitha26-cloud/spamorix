@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "spamorix-app/backend/server.js",
+      "src": "server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "spamorix-app/backend/server.js"
+      "dest": "server.js"
     }
   ]
 }
