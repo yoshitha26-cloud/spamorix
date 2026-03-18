@@ -203,54 +203,62 @@ app.use('*', (req, res) => {
 app.use(globalErrorHandler);
 
 // -----------------------------------------------
-// START SERVER
+// START SERVER OR EXPORT FOR VERCEL
 // -----------------------------------------------
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
-  try {
-    // Connect to MongoDB first
-    await connectDB();
+// Export the Express API for Vercel
+module.exports = app;
 
-    // Start the HTTP server
-    server.listen(PORT, () => {
-      logger.info('');
-      logger.info('╔════════════════════════════════════════╗');
-      logger.info('║   🛡  SPAMORIX BACKEND STARTED         ║');
-      logger.info('╠════════════════════════════════════════╣');
-      logger.info(`║  Port     : ${PORT}                         ║`);
-      logger.info(`║  Mode     : ${process.env.NODE_ENV || 'development'}              ║`);
-      logger.info(`║  API Base : http://localhost:${PORT}/api   ║`);
-      logger.info(`║  Health   : http://localhost:${PORT}/health║`);
-      logger.info('╚════════════════════════════════════════╝');
-      logger.info('');
-    });
+if (process.env.NODE_ENV !== 'production') {
+  // Local development start
+  const startServer = async () => {
+    try {
+      // Connect to MongoDB first
+      await connectDB();
 
-  } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
+      // Start the HTTP server
+      server.listen(PORT, () => {
+        logger.info('');
+        logger.info('╔════════════════════════════════════════╗');
+        logger.info('║   🛡  SPAMORIX BACKEND STARTED         ║');
+        logger.info('╠════════════════════════════════════════╣');
+        logger.info(`║  Port     : ${PORT}                         ║`);
+        logger.info(`║  Mode     : ${process.env.NODE_ENV || 'development'}              ║`);
+        logger.info(`║  API Base : http://localhost:${PORT}/api   ║`);
+        logger.info(`║  Health   : http://localhost:${PORT}/health║`);
+        logger.info('╚════════════════════════════════════════╝');
+        logger.info('');
+      });
+    } catch (error) {
+      logger.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  };
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  logger.error(`Unhandled Rejection: ${err.message}`);
-  server.close(() => process.exit(1));
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-  logger.error(`Uncaught Exception: ${err.message}`);
-  process.exit(1);
-});
-
-// Graceful shutdown on CTRL+C
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    logger.info('Server closed.');
-    process.exit(0);
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err) => {
+    logger.error(`Unhandled Rejection: ${err.message}`);
+    server.close(() => process.exit(1));
   });
-});
 
-startServer();
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (err) => {
+    logger.error(`Uncaught Exception: ${err.message}`);
+    process.exit(1);
+  });
+
+  // Graceful shutdown on CTRL+C
+  process.on('SIGTERM', () => {
+    logger.info('SIGTERM received. Shutting down gracefully...');
+    server.close(() => {
+      logger.info('Server closed.');
+      process.exit(0);
+    });
+  });
+
+  startServer();
+} else {
+  // DB connection for Vercel Serverless functions
+  connectDB();
+}
